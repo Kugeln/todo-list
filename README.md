@@ -1,2 +1,111 @@
-# todo-list
-互联网软件开发技术与实践
+# 日序 · 待办与课程表
+
+互联网软件开发技术与实践课程小项目。基于原有待办清单扩展，使用原生 HTML、CSS 和 JavaScript，无前端框架、后端、数据库或构建步骤。
+
+## 1. 本地预览
+
+在项目目录打开 PowerShell：
+
+```powershell
+cd E:\proj\todo-list
+python -m http.server 8000
+```
+
+浏览器访问 <http://localhost:8000>，按 `Ctrl+C` 停止服务。也可以使用 VS Code Live Server，或直接用浏览器打开 `index.html`。推荐固定使用同一个 HTTP 地址，避免不同来源的 localStorage 互相独立。
+
+## 2. 待办功能
+
+- 添加、编辑、删除待办，设置多个标签、任务日期、截止日期与时刻。
+- 三种独立状态：未完成、进行中、已完成；列表卡片可直接切换。
+- 状态与标签组合筛选。
+- “隐藏已完成”开关与两种筛选同时生效，设置刷新后保留。在“已完成”分类开启开关时，明确提示关闭开关后查看。
+- 保留不循环、每天、每周、每月；新增自定义每隔 X 天 / 周 / 月，X 为 1–999 的整数。
+- 完成循环任务后保留本次记录，并生成下一条未完成任务。标题、标签、循环规则和截止时刻不变；任务日期按规则前进，截止日期随任务日期平移相同天数，保持原有截止安排。
+- 未填任务日期时从完成当天起算。每月循环保留最初的日数，短月取最后一天，例如 1 月 31 日 → 2 月 28 日 → 3 月 31 日；每隔 2 月同样适用。
+- 每条记录最多生成一次后续任务，重复切换完成状态不会重复生成。已生成的下一条是独立记录，编辑或删除原记录不会同步修改它。下一次日期可能仍在过去，不自动跳过漏做的任务。
+
+## 3. 课程表功能
+
+- 顶部在“待办清单”和“课程表”之间切换。
+- 添加、编辑、删除课程，填写名称、星期、自由开始与结束时间、地点、备注。
+- 时间精确到分钟，无固定节次；结束时间须晚于同一天的开始时间。不支持跨午夜课程。
+- 支持每周、单周、双周。请先将“第一周周一”设为学期起始周的周一，系统据此计算教学周数。未设置时显示所有重复类型，并提示尚未设置教学周。
+- 上一周、下一周、本周按钮切换周视图；学期开始前不显示课程。未设置学期结束日期，课程会持续按周重复。
+- 桌面以周一到周日七列呈现，课程按开始时间排列；640px 及以下改为按星期分组的纵向卡片。
+- 两个模块统一使用暗红色风格；按钮、输入框有触屏尺寸，长标题与备注自动换行。
+
+## 4. 数据保存与旧版兼容
+
+所有数据只保存在当前浏览器，不上传到 GitHub，不同用户、设备与浏览器的数据互不共享。
+
+| localStorage 键 | 内容 |
+| --- | --- |
+| `rixu.tasks.v1` | 待办（沿用第一版存储键，兼容旧版任务） |
+| `rixu.hideCompleted.v1` | 隐藏已完成开关 |
+| `rixu.courses.v1` | 课程 |
+| `rixu.semesterStart.v1` | 第一教学周的周一 |
+
+刷新后数据保留；清除浏览器站点数据会清除记录。localhost 与公开网站的数据独立，本地记录不会自动迁移到公网地址。保存失败时显示提示，不将失败的修改当作已保存；损坏的数据不会被自动覆盖。
+
+## 5. 提交到 GitHub
+
+现有仓库：<https://github.com/Kugeln/todo-list>，当前分支为 `main`。不需要重新创建仓库。
+
+先查看并确认本次修改，然后执行：
+
+```powershell
+git status
+git add index.html styles.css app.js courses.js .nojekyll README.md tests/regression.cjs
+git commit -m "Extend recurrence, add timetable and responsive filters"
+git push origin main
+```
+
+首次推送可能需要完成 GitHub 登录。若推送提示远程有新提交，先拉取并合并，解决冲突后再推送，不使用强制推送。
+
+## 6. 开启 GitHub Pages
+
+本项目已经将入口放在仓库根目录，使用相对路径加载 CSS / JS，并添加 `.nojekyll`；可直接按分支部署，无需安装依赖或额外 Actions 配置文件。
+
+1. 先将上述文件推送到 GitHub 的 `main` 分支。
+2. 打开仓库的 **Settings → Pages**：<https://github.com/Kugeln/todo-list/settings/pages>。
+3. 在 **Build and deployment → Source** 中选择 **Deploy from a branch**。
+4. **Branch** 选择 `main`，文件夹选择 **/(root)**，点击 **Save**。
+5. 等待 GitHub 部署完成。可在仓库 **Actions** 页面查看 Pages 构建与部署结果。
+6. 回到 **Settings → Pages**，在 **Your site is live at** 或 **Visit site** 查看并打开最终公开网址。
+
+未设置自定义域名时，本仓库的预期地址是：
+
+**<https://kugeln.github.io/todo-list/>**
+
+此地址需完成首次部署后才可访问，并非当前已经上线的确认。老师和手机用户只需打开最终网址，无需下载项目。公开页面的浏览器 localStorage 仍属于每个访问者自己。
+
+GitHub Free 通常需要公开仓库才能使用 Pages；若仓库为私有，请确认账号计划是否支持私有仓库 Pages，不要为了部署误公开不希望公开的源码。
+
+后续修改按同样方式 `git add`、`git commit`、`git push origin main`，GitHub 会自动重新部署。若暂未看到更新，先确认 Actions 成功，再刷新网页。首次出现 404 时检查发布源、入口文件和部署状态。
+
+官方说明：
+- <https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site>
+- <https://docs.github.com/en/pages/getting-started-with-github-pages/creating-a-github-pages-site>
+
+## 7. 检查
+
+无需第三方依赖，有 Node.js 时运行：
+
+```powershell
+node --check app.js
+node --check courses.js
+node tests/regression.cjs
+```
+
+回归脚本使用模拟 DOM 与存储，不访问或修改实际浏览器数据。覆盖旧任务兼容、增删改、状态切换、标签与隐藏筛选、刷新恢复、普通与自定义循环、闰年/月末/跨年、课程时间校验与单双周、存储失败及损坏数据保护。
+
+本轮还通过浏览器实际检查了待办添加/编辑/状态切换、月循环、标签及隐藏筛选与刷新、课程添加/编辑/删除、单双周切换和刷新恢复。检查了桌面七列与窄屏纵向结构；窄屏待办和课程页面未检测到横向溢出。建议在自己的手机浏览器打开部署地址再做一次最终验收。
+
+## 文件结构
+
+- `index.html`：模块导航、待办表单、课程表与课程编辑对话框。
+- `styles.css`：暗红色卡片风格、响应式布局。
+- `app.js`：待办管理、循环、筛选与本地持久化。
+- `courses.js`：课程管理、教学周与本地持久化。
+- `.nojekyll`：GitHub Pages 按静态文件发布。
+- `tests/regression.cjs`：无依赖回归检查。
