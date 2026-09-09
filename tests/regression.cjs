@@ -6,6 +6,7 @@ const path = require('node:path');
 const root = path.join(__dirname, '..');
 class Element {
   constructor() { this.children = []; this.value = ''; this.handlers = {}; this.attributes = {}; this.dataset = {}; }
+  querySelector(selector) { const date = selector.match(/data-date="([^"]+)"/)?.[1]; return this.children.find(child => child.dataset?.date === date) || this.children.map(child => child.querySelector?.(selector)).find(Boolean); }
   append(...nodes) { this.children.push(...nodes); }
   replaceChildren(...nodes) { this.children = nodes; this.value = nodes[0]?.value || ''; }
   add(node) { this.append(node); }
@@ -13,6 +14,7 @@ class Element {
   addEventListener(key, handler) { this.handlers[key] = handler; }
   querySelectorAll() { return this.children; }
   focus() {}
+  scrollIntoView() {}
   showModal() { this.open = true; }
   close() { this.open = false; }
 }
@@ -29,12 +31,13 @@ function boot() {
   }
   const form = makeForm('#task-form', { title: '', tags: '', date: '', deadline: '', repeat: 'none', status: 'todo', repeatInterval: '1', repeatUnit: 'days' });
   const course = makeForm('#course-form', { name: '', day: '1', repeat: 'every', start: '', end: '', location: '', notes: '' });
+  const food = makeForm('#food-form', { name: '', date: '', type: '奶茶', level: '2', kcal: '', notes: '' });
   const context = vm.createContext({ document: { querySelector: get, createElement: () => new Element() }, Option: function(text, value) { this.textContent = text; this.value = value; }, FormData: function(form) { this.get = key => form.elements[key].disabled ? null : form.elements[key].value; }, crypto: require('node:crypto').webcrypto, structuredClone, confirm: () => true, console, localStorage: { getItem: key => storage.get(key) ?? null, setItem: (key, value) => { if (fail) throw Error('storage blocked'); storage.set(key, value); } } });
-  for (const file of ['app.js', 'courses.js']) vm.runInContext(fs.readFileSync(path.join(root, file), 'utf8'), context);
+  for (const file of ['app.js', 'courses.js', 'food.js']) vm.runInContext(fs.readFileSync(path.join(root, file), 'utf8'), context);
   const run = code => vm.runInContext(code, context);
   const submit = (target, values) => { for (const [key, value] of Object.entries(values)) target.elements[key].value = value; if (target === form) run('syncRepeatFields()'); target.handlers.submit({ preventDefault() {} }); };
   const click = selector => get(selector).handlers.click();
-  return { get, form, course, run, submit, click };
+  return { get, form, course, food, run, submit, click };
 }
 // An actual v1-shaped record must survive loading and editing without losing its monthly anchor.
 storage.set('rixu.tasks.v1', JSON.stringify([{ id: 'legacy', title: '旧版任务', tags: ['课程'], date: '2026-02-28', deadline: '2026-02-28T18:30', repeat: 'monthly', status: 'todo', anchorDay: 31 }]));
@@ -82,3 +85,31 @@ assert.equal(JSON.parse(storage.get('rixu.courses.v1')).length, 0);
 fail = true; const count = app.run('tasks.length'); app.submit(app.form, { title: '保存失败' }); assert.equal(app.run('tasks.length'), count); assert.match(app.get('#message').textContent, /保存失败/); fail = false;
 storage.set('rixu.tasks.v1', 'broken'); app = boot(); app.submit(app.form, { title: '不能覆盖' }); assert.equal(storage.get('rixu.tasks.v1'), 'broken');
 console.log('PASS: legacy compatibility; task CRUD/status/tags; hide + filters + reload; normal/custom recurrence and boundaries; course CRUD/time validation/odd-even weeks/reload; failed storage and corrupt-data protection.');
+
+storage.delete('rixu.tasks.v1'); app = boot();
+const otherStorage = JSON.stringify([...storage]);
+app.click('#show-food'); assert.equal(app.get('#food-module').hidden, false); assert.equal(app.get('#todo-module').hidden, true);
+app.click('#add-food'); app.submit(app.food, { name: '奶茶', date: '2024-02-29', level: '3', kcal: '350.5', notes: '少糖' });
+assert.equal(JSON.parse(storage.get('rixu.food.v1')).length, 1);
+app.click('#add-food'); app.submit(app.food, { name: '甜点', date: '2024-02-29', type: '甜点', level: '2', kcal: '' });
+const cell = () => app.get('#food-heatmap').querySelector('button[data-date="2024-02-29"]');
+assert.match(cell().attributes['aria-label'], /2 条记录，等级累计 5 分/);
+assert.match(app.get('#food-summary').textContent, /350.5 kcal（1\/2 条）/);
+app.get('#food-records').children[0].children.at(-1).children[0].handlers.click();
+app.submit(app.food, { name: '编辑奶茶', date: '2024-03-01', level: '1', kcal: '0' });
+assert.match(cell().attributes['aria-label'], /1 条记录，等级累计 2 分/);
+assert.match(app.get('#food-summary').textContent, /0 kcal/);
+cell().handlers.click(); assert.equal(app.get('#food-records').children[0].children[0].textContent, '甜点');
+app.get('#food-records').children[0].children.at(-1).children[1].handlers.click();
+assert.match(cell().attributes['aria-label'], /0 条记录，等级累计 0 分/);
+assert.equal(app.get('#food-empty').hidden, false);
+app = boot(); const datePicker = app.get('#food-selected-date'); datePicker.value = '2024-03-01'; datePicker.handlers.change({target:datePicker});
+assert.equal(app.get('#food-records').children[0].children[0].textContent, '编辑奶茶');
+for (const value of [{date:'2023-02-29'}, {date:'2024-03-01',name:'   '}, {name:'测试',kcal:'-1'}, {kcal:'NaN'}, {kcal:'',level:'4'}]) {
+  app.click('#add-food'); app.submit(app.food, {name:'测试',date:'2024-03-01',...value}); assert.equal(JSON.parse(storage.get('rixu.food.v1')).length,1);
+}
+fail = true; app.click('#add-food'); app.submit(app.food,{name:'不能保存',date:'2024-03-01'}); assert.equal(JSON.parse(storage.get('rixu.food.v1')).length,1); assert.match(app.get('#food-form-message').textContent,/保存失败/); fail=false;
+assert.equal(JSON.stringify([...storage].filter(([key])=>key!=='rixu.food.v1')),otherStorage);
+storage.set('rixu.food.v1','corrupt'); app=boot(); app.click('#add-food'); app.submit(app.food,{name:'不能覆盖',date:'2024-03-01'}); assert.equal(storage.get('rixu.food.v1'),'corrupt');
+app.click('#show-courses'); assert.equal(app.get('#food-module').hidden,true); assert.equal(app.get('#course-module').hidden,false);
+console.log('PASS: food CRUD, leap dates, moved-date aggregation, zero/unknown kcal, calendar selection, reload, validation, storage failures, isolated storage and three-module navigation.');

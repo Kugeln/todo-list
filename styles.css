@@ -73,3 +73,51 @@ textarea:focus-visible { outline:3px solid #c98291; outline-offset:2px; }
   #course-dialog { padding:20px; }
 }
 @media (prefers-reduced-motion:reduce) { *, *::after { transition:none!important; } }
+
+/* Food tracking: twelve compact monthly calendars, no horizontal scrolling. */
+.module-nav { flex-wrap:wrap; }
+#add-food { flex:0 0 auto; }
+.food-map { padding:22px; }
+.food-map > .muted { line-height:1.8; }
+.food-year { display:flex; align-items:center; gap:10px; }
+.food-year strong { white-space:nowrap; }
+.food-heatmap { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:24px 20px; }
+.heat-month { min-width:0; }
+.heat-month h3 { margin:0 0 10px; font-size:14px; }
+.heat-days { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:4px; }
+.heat-weekday { text-align:center; font-size:11px; color:var(--muted); padding-bottom:5px; }
+.heat-day { min-height:28px; padding:2px 0; border:1px solid transparent; border-radius:5px; font-size:11px; }
+.heat-0 { background:#f0ebec; color:#75686c; }
+.heat-1 { background:#ecd0d7; color:#672438; }
+.heat-2 { background:#d999a9; color:#49202b; }
+.heat-3 { background:#ac4e66; color:white; }
+.heat-4 { background:#821d30; color:white; }
+.heat-day:hover { outline:2px solid var(--red); outline-offset:1px; }
+.heat-day[aria-pressed="true"] { outline:2px solid var(--ink); outline-offset:1px; }
+.heat-legend { display:flex; align-items:center; justify-content:flex-end; gap:5px; font-size:12px; color:var(--muted); margin:16px 0 22px; }
+.heat-legend i { display:block; width:15px; height:15px; border-radius:3px; }
+.food-day-bar { display:flex; align-items:center; gap:12px; margin:24px 0 12px; flex-wrap:wrap; }
+.food-day-bar label { margin:0; }
+.food-day-bar input { width:180px; }
+#food-message, #food-form-message { color:var(--red); font-size:13px; line-height:1.7; margin:12px 0; }
+#food-summary { line-height:1.8; margin-bottom:16px; }
+.food-record { padding:20px; overflow-wrap:anywhere; }
+.food-record h3 { font-size:16px; }
+.food-record .actions { justify-content:flex-end; margin-top:12px; }
+.food-notes { white-space:pre-wrap; line-height:1.8; margin-top:12px; font-size:13px; color:var(--muted); }
+.food-empty { padding:32px 20px; text-align:center; color:var(--muted); }
+#food-dialog { border:1px solid var(--line); border-radius:16px; padding:24px; color:var(--ink); width:480px; max-width:calc(100% - 24px); max-height:calc(100dvh - 32px); overflow-y:auto; }
+#food-dialog::backdrop { background:#27171d66; }
+#food-dialog .list-header { padding:0; }
+@media(max-width:1000px) { .food-heatmap { grid-template-columns:repeat(3,minmax(0,1fr)); } }
+@media(max-width:760px) { .food-heatmap { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:640px) {
+  .module-nav button { min-width:0; flex:1; padding:10px 8px; }
+  .food-heatmap { grid-template-columns:minmax(0,1fr); gap:24px; }
+  .heat-day { min-height:44px; font-size:13px; }
+  .food-map { padding:16px; }
+  .food-map > .list-header { flex-wrap:wrap; }
+  #food-dialog { padding:20px; }
+  .food-day-bar { gap:8px; }
+  .food-day-bar input { flex:1; min-width:150px; }
+}

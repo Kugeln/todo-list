@@ -93,12 +93,12 @@
     try { localStorage.setItem(SEMESTER_KEY, value); semester = value; notify(value ? "学期起始日期已保存。" : "已清除学期设置，展示所有课程。"); renderCourses(); }
     catch { event.target.value = semester; notify("学期设置保存失败，本次设置未更改。"); }
   });
-  ["tasks", "courses"].forEach(module => $("#show-" + module).addEventListener("click", () => {
-    const showTasks = module === "tasks";
-    $("#todo-module").hidden = !showTasks;
-    $("#course-module").hidden = showTasks;
-    $("#show-tasks").setAttribute("aria-pressed", String(showTasks));
-    $("#show-courses").setAttribute("aria-pressed", String(!showTasks));
+  const modules = { tasks: "todo-module", courses: "course-module", food: "food-module" };
+  Object.keys(modules).forEach(module => $("#show-" + module).addEventListener("click", () => {
+    Object.entries(modules).forEach(([name, id]) => {
+      $("#" + id).hidden = name !== module;
+      $("#show-" + name).setAttribute("aria-pressed", String(name === module));
+    });
   }));
   try {
     const saved = JSON.parse(localStorage.getItem(COURSES_KEY) || "[]");

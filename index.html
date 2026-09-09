@@ -4,15 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="简洁的个人待办清单，安排任务、分类标签与循环计划。">
-  <title>日序 · 待办与课程表</title>
+  <title>日序 · 待办、课程与饮食</title>
   <link rel="stylesheet" href="styles.css">
   <script src="app.js" defer></script>
   <script src="courses.js" defer></script>
+  <script src="food.js" defer></script>
 </head>
 <body>
   <main class="app">
     <header class="header"><div><span class="eyebrow">一点计划，从容一天</span><h1><span class="logo" aria-hidden="true">✓</span>日序 <span>待办清单</span></h1></div><p id="today"></p></header>
-    <nav class="module-nav" aria-label="功能模块"><button type="button" id="show-tasks" aria-pressed="true" aria-controls="todo-module">待办清单</button><button type="button" id="show-courses" aria-pressed="false" aria-controls="course-module">课程表</button></nav>
+    <nav class="module-nav" aria-label="功能模块"><button type="button" id="show-tasks" aria-pressed="true" aria-controls="todo-module">待办清单</button><button type="button" id="show-courses" aria-pressed="false" aria-controls="course-module">课程表</button><button type="button" id="show-food" aria-pressed="false" aria-controls="food-module">饮食打卡</button></nav>
     <div class="layout" id="todo-module">
       <section class="panel editor" aria-labelledby="form-heading">
         <h2 id="form-heading">添加待办</h2><p class="muted">把要做的事，放在这里。</p>
@@ -56,6 +57,27 @@
         <div class="form-actions"><button type="submit" class="primary">保存课程</button><button type="button" id="cancel-course">取消</button></div>
       </form>
     </dialog>
+    <section id="food-module" hidden aria-labelledby="food-heading">
+      <div class="list-header"><h2 id="food-heading">饮食打卡</h2><button id="add-food" type="button" class="primary">＋ 记录饮食</button></div>
+      <section class="panel food-map" aria-labelledby="heatmap-heading">
+        <div class="list-header"><h2 id="heatmap-heading">热量图谱</h2><div class="food-year"><button id="food-prev-year" type="button" aria-label="上一年">←</button><strong id="food-year-label"></strong><button id="food-next-year" type="button" aria-label="下一年">→</button></div></div>
+        <p class="muted">颜色按当天热量等级累加：低 1 分、中 2 分、高 3 分。点击日期查看记录。</p>
+        <div class="heat-legend" aria-label="颜色等级：无记录、1分、2至3分、4至6分、7分及以上">浅 <i class="heat-0"></i><i class="heat-1"></i><i class="heat-2"></i><i class="heat-3"></i><i class="heat-4"></i> 深</div>
+        <div id="food-heatmap" class="food-heatmap"></div>
+      </section>
+      <div class="food-day-bar"><label for="food-selected-date">查看日期</label><input id="food-selected-date" type="date" min="1900-01-01" max="9998-12-31"><button id="food-today" type="button">今天</button></div>
+      <p id="food-message" role="status" aria-live="polite"></p><p id="food-summary" class="muted"></p>
+      <div id="food-records" class="tasks"></div><p id="food-empty" class="panel food-empty">这一天还没有饮食记录。</p>
+    </section>
+    <dialog id="food-dialog" aria-labelledby="food-form-heading"><form id="food-form">
+      <div class="list-header"><h2 id="food-form-heading">记录饮食</h2><button id="close-food" type="button" aria-label="关闭饮食编辑">×</button></div>
+      <label for="food-name">食物或饮品名称 *</label><input id="food-name" name="name" required maxlength="120" placeholder="例如：一杯奶茶">
+      <label for="food-date">日期 *</label><input id="food-date" name="date" type="date" min="1900-01-01" max="9998-12-31" required>
+      <div class="field-row"><div><label for="food-type">类型</label><select id="food-type" name="type"><option>奶茶</option><option>甜点</option><option>炸物</option><option>夜宵</option><option>零食</option><option>其他</option></select></div><div><label for="food-level">热量等级</label><select id="food-level" name="level"><option value="1">低</option><option value="2" selected>中</option><option value="3">高</option></select></div></div>
+      <label for="food-kcal">估算热量 kcal（可选）</label><input id="food-kcal" name="kcal" type="number" min="0" max="100000" step="0.1" placeholder="不确定可以留空">
+      <label for="food-notes">备注（可选）</label><textarea id="food-notes" name="notes" rows="3" maxlength="1000"></textarea>
+      <p id="food-form-message" role="alert"></p><div class="form-actions"><button type="submit" class="primary">保存记录</button><button id="cancel-food" type="button">取消</button></div>
+    </form></dialog>
     <footer>日序 · 数据保存在当前浏览器中</footer>
   </main>
 </body>
