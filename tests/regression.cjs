@@ -92,7 +92,7 @@ app.click('#show-food'); assert.equal(app.get('#food-module').hidden, false); as
 app.click('#add-food'); app.submit(app.food, { name: '奶茶', date: '2024-02-29', level: '3', kcal: '350.5', notes: '少糖' });
 assert.equal(JSON.parse(storage.get('rixu.food.v1')).length, 1);
 app.click('#add-food'); app.submit(app.food, { name: '甜点', date: '2024-02-29', type: '甜点', level: '2', kcal: '' });
-const cell = () => app.get('#food-heatmap').querySelector('button[data-date="2024-02-29"]');
+const cell = () => { app.click("#food-view-year"); return app.get('#food-heatmap').querySelector('button[data-date="2024-02-29"]'); };
 assert.match(cell().attributes['aria-label'], /2 条记录，等级累计 5 分/);
 assert.match(app.get('#food-summary').textContent, /350.5 kcal（1\/2 条）/);
 app.get('#food-records').children[0].children.at(-1).children[0].handlers.click();
@@ -110,6 +110,25 @@ for (const value of [{date:'2023-02-29'}, {date:'2024-03-01',name:'   '}, {name:
 }
 fail = true; app.click('#add-food'); app.submit(app.food,{name:'不能保存',date:'2024-03-01'}); assert.equal(JSON.parse(storage.get('rixu.food.v1')).length,1); assert.match(app.get('#food-form-message').textContent,/保存失败/); fail=false;
 assert.equal(JSON.stringify([...storage].filter(([key])=>key!=='rixu.food.v1')),otherStorage);
+// View context, calendar boundaries, week crossing, and daily navigation.
+function choose(value) { const picker=app.get('#food-selected-date'); picker.value=value; picker.handlers.change({target:picker}); }
+choose('2024-01-31'); app.click('#food-view-month');
+assert.equal(app.get('#food-heatmap').children.length,1);
+app.click('#food-next-year'); assert.equal(app.get('#food-selected-date').value,'2024-02-29');
+app.click('#food-view-year'); app.click('#food-next-year'); assert.equal(app.get('#food-selected-date').value,'2025-02-28');
+choose('2026-12-31'); app.click('#food-view-week');
+assert.equal(app.get('#food-heatmap').children.length,7);
+assert.equal(app.get('#food-heatmap').children[0].dataset.date,'2026-12-28');
+assert.equal(app.get('#food-heatmap').children[6].dataset.date,'2027-01-03');
+app.click('#food-next-year'); assert.equal(app.get('#food-selected-date').value,'2027-01-07');
+app.get('#food-heatmap').children[0].handlers.click();
+assert.equal(app.get('#food-view-day').attributes['aria-pressed'],'true');
+assert.equal(app.get('#food-day-details').hidden,false);
+assert.equal(app.get('#food-selected-date').value,'2027-01-04');
+app.click('#food-prev-year'); assert.equal(app.get('#food-selected-date').value,'2027-01-03');
+app.click('#add-food'); assert.equal(app.food.elements.date.value,'2027-01-03');
+choose('1900-01-01'); assert.equal(app.get('#food-prev-year').disabled,true);
+console.log('PASS: four views, monthly/yearly clamp, cross-year Monday weeks, day selection and navigation, selected-date add default and lower date bound.');
 storage.set('rixu.food.v1','corrupt'); app=boot(); app.click('#add-food'); app.submit(app.food,{name:'不能覆盖',date:'2024-03-01'}); assert.equal(storage.get('rixu.food.v1'),'corrupt');
 app.click('#show-courses'); assert.equal(app.get('#food-module').hidden,true); assert.equal(app.get('#course-module').hidden,false);
 console.log('PASS: food CRUD, leap dates, moved-date aggregation, zero/unknown kcal, calendar selection, reload, validation, storage failures, isolated storage and three-module navigation.');

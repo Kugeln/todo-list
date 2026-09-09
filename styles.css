@@ -121,3 +121,21 @@ textarea:focus-visible { outline:3px solid #c98291; outline-offset:2px; }
   .food-day-bar { gap:8px; }
   .food-day-bar input { flex:1; min-width:150px; }
 }
+
+.food-view-tabs { margin:16px 0; }
+.food-view-tabs button { min-width:50px; }
+.food-heatmap.food-view-month { grid-template-columns:minmax(0,1fr); }
+.food-view-month .heat-day { min-height:76px; font-size:15px; }
+.food-cell-count { display:block; font-size:12px; margin-top:7px; }
+.food-heatmap.food-view-week { grid-template-columns:repeat(7,minmax(0,1fr)); gap:10px; }
+.food-view-week .heat-day { padding:16px 6px; min-height:110px; font-size:13px; }
+.food-year { flex-wrap:wrap; }
+.food-year strong { white-space:normal; text-align:center; }
+@media(max-width:640px) {
+  .food-view-month .heat-day { min-height:62px; font-size:13px; }
+  .food-view-month .heat-days { gap:3px; }
+  .food-view-month .food-cell-count { font-size:10px; }
+  .food-heatmap.food-view-week { grid-template-columns:minmax(0,1fr); }
+  .food-view-week .heat-day { min-height:70px; text-align:left; padding:14px; }
+  .food-view-week .food-cell-count { display:inline-block; margin:0 0 0 12px; }
+}

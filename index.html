@@ -63,11 +63,12 @@
         <div class="list-header"><h2 id="heatmap-heading">热量图谱</h2><div class="food-year"><button id="food-prev-year" type="button" aria-label="上一年">←</button><strong id="food-year-label"></strong><button id="food-next-year" type="button" aria-label="下一年">→</button></div></div>
         <p class="muted">颜色按当天热量等级累加：低 1 分、中 2 分、高 3 分。点击日期查看记录。</p>
         <div class="heat-legend" aria-label="颜色等级：无记录、1分、2至3分、4至6分、7分及以上">浅 <i class="heat-0"></i><i class="heat-1"></i><i class="heat-2"></i><i class="heat-3"></i><i class="heat-4"></i> 深</div>
+        <div class="tabs food-view-tabs" aria-label="热量图谱视图"><button id="food-view-year" type="button" aria-pressed="true">年</button><button id="food-view-month" type="button" aria-pressed="false">月</button><button id="food-view-week" type="button" aria-pressed="false">周</button><button id="food-view-day" type="button" aria-pressed="false">日</button></div>
         <div id="food-heatmap" class="food-heatmap"></div>
       </section>
       <div class="food-day-bar"><label for="food-selected-date">查看日期</label><input id="food-selected-date" type="date" min="1900-01-01" max="9998-12-31"><button id="food-today" type="button">今天</button></div>
-      <p id="food-message" role="status" aria-live="polite"></p><p id="food-summary" class="muted"></p>
-      <div id="food-records" class="tasks"></div><p id="food-empty" class="panel food-empty">这一天还没有饮食记录。</p>
+      <p id="food-message" role="status" aria-live="polite"></p><div id="food-day-details" hidden><p id="food-summary" class="muted" tabindex="-1"></p>
+      <div id="food-records" class="tasks"></div><p id="food-empty" class="panel food-empty">这一天还没有饮食记录。点击“记录饮食”添加。</p></div>
     </section>
     <dialog id="food-dialog" aria-labelledby="food-form-heading"><form id="food-form">
       <div class="list-header"><h2 id="food-form-heading">记录饮食</h2><button id="close-food" type="button" aria-label="关闭饮食编辑">×</button></div>
