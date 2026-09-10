@@ -139,3 +139,24 @@ textarea:focus-visible { outline:3px solid #c98291; outline-offset:2px; }
   .food-view-week .heat-day { min-height:70px; text-align:left; padding:14px; }
   .food-view-week .food-cell-count { display:inline-block; margin:0 0 0 12px; }
 }
+
+.center-nav { margin:0 0 18px; }
+.center-recent,.center-section { padding:22px; margin-bottom:18px; }
+.center-recent h3 { margin:0 0 12px; }
+.center-recent button { margin:4px; max-width:100%; overflow-wrap:anywhere; }
+.center-grid,.center-detail-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }
+.center-course { text-align:left; padding:22px; min-width:0; overflow-wrap:anywhere; }
+.center-course p { margin-top:10px; font-size:14px; }
+.center-section { min-width:0; overflow-wrap:anywhere; }
+.center-section > button { margin:14px 0; }
+.center-text { white-space:pre-wrap; line-height:1.8; margin:12px 0; font-size:14px; }
+.center-entry { border-top:1px solid var(--line); padding:16px 0; }
+.center-entry h4 { margin:0; }
+.center-entry .actions { flex-wrap:wrap; }
+.center-due,#center-message,#center-form-error { color:var(--red); line-height:1.7; }
+.center-link { color:var(--red); display:inline-block; padding:10px 0; overflow-wrap:anywhere; }
+#center-dialog { width:520px; max-width:calc(100% - 24px); max-height:calc(100dvh - 32px); overflow:auto; border:1px solid var(--line); border-radius:16px; padding:24px; }
+#center-dialog::backdrop { background:#27171d66; }
+.course-card { cursor:pointer; }
+.course-card:focus-visible { outline:3px solid #c98291; }
+@media(max-width:640px) { .center-grid,.center-detail-grid { grid-template-columns:minmax(0,1fr); } .center-section,.center-recent { padding:16px; } }

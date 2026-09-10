@@ -30,10 +30,13 @@ function boot() {
     form.reset(); return form;
   }
   const form = makeForm('#task-form', { title: '', tags: '', date: '', deadline: '', repeat: 'none', status: 'todo', repeatInterval: '1', repeatUnit: 'days' });
-  const course = makeForm('#course-form', { name: '', day: '1', repeat: 'every', start: '', end: '', location: '', notes: '' });
+  const course = makeForm('#course-form', { name: '', teacher: '', description: '', day: '1', repeat: 'every', start: '', end: '', location: '', notes: '' });
   const food = makeForm('#food-form', { name: '', date: '', type: '奶茶', level: '2', kcal: '', notes: '' });
-  const context = vm.createContext({ document: { querySelector: get, createElement: () => new Element() }, Option: function(text, value) { this.textContent = text; this.value = value; }, FormData: function(form) { this.get = key => form.elements[key].disabled ? null : form.elements[key].value; }, crypto: require('node:crypto').webcrypto, structuredClone, confirm: () => true, console, localStorage: { getItem: key => storage.get(key) ?? null, setItem: (key, value) => { if (fail) throw Error('storage blocked'); storage.set(key, value); } } });
-  for (const file of ['app.js', 'courses.js', 'food.js']) vm.runInContext(fs.readFileSync(path.join(root, file), 'utf8'), context);
+  get('#center-form').elements = {};
+  get('#center-form').reset = () => {};
+  get('#center-fields').append = (...items) => { for (const item of items) { get('#center-fields').children.push(item); if(item.id) nodes['#'+item.id]=item; if(item.name) get('#center-form').elements[item.name]=item; } };
+  const context = vm.createContext({ URL, document: { querySelector: get, createElement: () => new Element() }, Option: function(text, value) { this.textContent = text; this.value = value; }, FormData: function(form) { this.get = key => form.elements[key].disabled ? null : form.elements[key].value; }, crypto: require('node:crypto').webcrypto, structuredClone, confirm: () => true, console, localStorage: { getItem: key => storage.get(key) ?? null, setItem: (key, value) => { if (fail) throw Error('storage blocked'); storage.set(key, value); } } });
+  for (const file of ['app.js', 'course-center.js', 'courses.js', 'food.js']) vm.runInContext(fs.readFileSync(path.join(root, file), 'utf8'), context);
   const run = code => vm.runInContext(code, context);
   const submit = (target, values) => { for (const [key, value] of Object.entries(values)) target.elements[key].value = value; if (target === form) run('syncRepeatFields()'); target.handlers.submit({ preventDefault() {} }); };
   const click = selector => get(selector).handlers.click();
@@ -132,3 +135,45 @@ console.log('PASS: four views, monthly/yearly clamp, cross-year Monday weeks, da
 storage.set('rixu.food.v1','corrupt'); app=boot(); app.click('#add-food'); app.submit(app.food,{name:'不能覆盖',date:'2024-03-01'}); assert.equal(storage.get('rixu.food.v1'),'corrupt');
 app.click('#show-courses'); assert.equal(app.get('#food-module').hidden,true); assert.equal(app.get('#course-module').hidden,false);
 console.log('PASS: food CRUD, leap dates, moved-date aggregation, zero/unknown kcal, calendar selection, reload, validation, storage failures, isolated storage and three-module navigation.');
+
+// Course center entities, legacy course compatibility, assignment-to-task deduplication.
+storage.delete('rixu.food.v1'); app=boot();
+app.click('#add-course'); app.submit(app.course,{name:'课程中心测试',teacher:'张老师',description:'简介',start:'09:00',end:'10:00'});
+app.click('#course-tab-all'); app.get('#course-all').children[0].handlers.click();
+const centerSection = index => app.get('#course-detail').children[2].children[index];
+function centerAdd(index, values) {
+  centerSection(index).children[1].handlers.click();
+  app.submit(app.get('#center-form'),values);
+}
+centerAdd(0,{title:'课程主页',url:'https://example.com',notes:'说明'});
+centerAdd(0,{title:'第二个网址',url:'https://example.org'});
+assert.equal(JSON.parse(storage.get('rixu.course.links.v1')).length,2);
+centerAdd(1,{title:'教材',type:'PDF',fileName:'教材.pdf',notes:'本地文件信息'});
+assert.equal(JSON.parse(storage.get('rixu.course.materials.v1'))[0].attachment.storage,'metadata');
+centerAdd(2,{title:'较晚作业',status:'未完成',deadline:'2099-05-02T12:00'});
+centerAdd(2,{title:'较早作业',status:'未完成',deadline:'2099-05-01T12:00'});
+let assignmentCard=centerSection(2).children[2];
+assert.equal(assignmentCard.children[0].textContent,'较早作业');
+assignmentCard.children.at(-1).children[1].handlers.click();
+assignmentCard.children.at(-1).children[1].handlers.click();
+assert.equal(app.run('tasks.filter(task=>task.assignmentId).length'),1);
+assert.equal(app.run('tasks.find(task=>task.assignmentId).deadline'),'2099-05-01T12:00');
+assignmentCard.children.at(-1).children[2].handlers.click(); app.submit(app.get('#center-form'),{title:'作业修改',deadline:'2099-04-30T12:00'});
+centerSection(2).children[2].children.at(-1).children[1].handlers.click();
+assert.equal(app.run('tasks.find(task=>task.assignmentId).title'),'作业修改');
+centerSection(2).children[2].children.at(-1).children[0].handlers.click();
+assert.equal(JSON.parse(storage.get('rixu.course.assignments.v1')).find(row=>row.title==='作业修改').status,'已完成');
+centerAdd(3,{title:'考试范围',content:'第1至8章',url:'https://example.com/exam'});
+centerSection(3).children[2].children.at(-1).children[0].handlers.click(); app.submit(app.get('#center-form'),{content:'第1至9章'});
+assert.equal(JSON.parse(storage.get('rixu.course.notes.v1'))[0].content,'第1至9章');
+app=boot();app.click('#course-tab-all');app.get('#course-all').children[0].handlers.click();
+assert.equal(centerSection(0).children.length,4);
+assert.equal(centerSection(3).children[2].children[0].textContent,'考试范围');
+centerSection(3).children[2].children.at(-1).children[1].handlers.click();
+assert.equal(JSON.parse(storage.get('rixu.course.notes.v1')).length,0);
+centerSection(2).children[2].children.at(-1).children[3].handlers.click();
+assert.equal(JSON.parse(storage.get('rixu.course.assignments.v1')).length,1);
+centerAdd(0,{title:'无效网址',url:'javascript:alert(1)'});
+assert.match(app.get('#center-form-error').textContent,/http/);
+assert.equal(JSON.parse(storage.get('rixu.course.links.v1')).length,2);
+console.log('PASS: course details, separate link/material/assignment/note CRUD and reload, sorting, metadata-only attachments, safe URLs, task association and deduplication.');

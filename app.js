@@ -90,6 +90,7 @@ function render() {
     });
     top.append(select);
     const metadata = element("div", "metadata");
+    if (task.courseName) metadata.append(element("span", "", `课程：${task.courseName}`));
     if (task.date) metadata.append(element("span", "", `日期 ${task.date}`));
     if (task.deadline) {
       const overdue = task.status !== "done" && new Date(task.deadline) < new Date();

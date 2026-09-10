@@ -9,6 +9,7 @@
   const courseForm = $("#course-form");
   const dialog = $("#course-dialog");
   let courses = [];
+  let center = null;
   let readable = true;
   let editingCourse = null;
   let semester = "";
@@ -37,7 +38,7 @@
     editingCourse = course?.id || null;
     $("#course-form-heading").textContent = course ? "编辑课程" : "添加课程";
     $("#course-form-message").textContent = "";
-    if (course) for (const key of ["name", "day", "repeat", "start", "end", "location", "notes"]) courseForm.elements[key].value = course[key];
+    if (course) for (const key of ["name", "day", "repeat", "start", "end", "location", "notes", "teacher", "description"]) courseForm.elements[key].value = course[key] || "";
     dialog.showModal();
     courseForm.elements.name.focus();
   }
@@ -59,6 +60,10 @@
       if (!daily.length) column.append(element("p", "day-empty", "暂无课程"));
       daily.forEach(course => {
         const card = element("article", "course-card");
+        card.tabIndex = 0;
+        card.setAttribute("aria-label", `查看${course.name}详情`);
+        card.addEventListener("click", event => { if (!event.target.closest("button")) center?.open(course.id); });
+        card.addEventListener("keydown", event => { if (event.target === card && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); center?.open(course.id); } });
         card.append(element("p", "course-time", `${course.start} – ${course.end}`), element("h4", "", course.name), element("span", "tag", labels[course.repeat]));
         if (course.location) card.append(element("p", "course-location", `地点：${course.location}`));
         if (course.notes) card.append(element("p", "course-notes", course.notes));
@@ -72,11 +77,12 @@
       });
       $("#week-grid").append(column);
     });
+    center?.render();
   }
   courseForm.addEventListener("submit", event => {
     event.preventDefault();
     const data = new FormData(courseForm);
-    const course = { id: editingCourse || crypto.randomUUID(), name: data.get("name").trim(), day: Number(data.get("day")), repeat: data.get("repeat"), start: data.get("start"), end: data.get("end"), location: data.get("location").trim(), notes: data.get("notes").trim() };
+    const course = { ...courses.find(item => item.id === editingCourse), teacher: data.get("teacher").trim(), description: data.get("description").trim(), id: editingCourse || crypto.randomUUID(), name: data.get("name").trim(), day: Number(data.get("day")), repeat: data.get("repeat"), start: data.get("start"), end: data.get("end"), location: data.get("location").trim(), notes: data.get("notes").trim() };
     if (!course.name) { $("#course-form-message").textContent = "请输入课程名称。"; return; }
     if (!course.start || !course.end || course.end <= course.start) { $("#course-form-message").textContent = "结束时间须晚于开始时间，请按同一天的课程填写。"; return; }
     const next = editingCourse ? courses.map(item => item.id === editingCourse ? course : item) : [...courses, course];
@@ -111,5 +117,6 @@
     if (value && (!/^\d{4}-\d{2}-\d{2}$/.test(value) || new Date(`${value}T12:00:00`).getDay() !== 1)) throw Error("Invalid semester");
     semester = value; $("#semester-start").value = semester;
   } catch { notify("无法读取学期设置，暂时展示所有课程。"); }
+  center = typeof createCourseCenter === "function" ? createCourseCenter({ getCourses: () => courses, edit: openEditor }) : null;
   renderCourses();
 })();

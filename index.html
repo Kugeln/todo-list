@@ -7,13 +7,14 @@
   <title>日序 · 待办、课程与饮食</title>
   <link rel="stylesheet" href="styles.css">
   <script src="app.js" defer></script>
+  <script src="course-center.js" defer></script>
   <script src="courses.js" defer></script>
   <script src="food.js" defer></script>
 </head>
 <body>
   <main class="app">
     <header class="header"><div><span class="eyebrow">一点计划，从容一天</span><h1><span class="logo" aria-hidden="true">✓</span>日序 <span>待办清单</span></h1></div><p id="today"></p></header>
-    <nav class="module-nav" aria-label="功能模块"><button type="button" id="show-tasks" aria-pressed="true" aria-controls="todo-module">待办清单</button><button type="button" id="show-courses" aria-pressed="false" aria-controls="course-module">课程表</button><button type="button" id="show-food" aria-pressed="false" aria-controls="food-module">饮食打卡</button></nav>
+    <nav class="module-nav" aria-label="功能模块"><button type="button" id="show-tasks" aria-pressed="true" aria-controls="todo-module">待办清单</button><button type="button" id="show-courses" aria-pressed="false" aria-controls="course-module">课程</button><button type="button" id="show-food" aria-pressed="false" aria-controls="food-module">饮食打卡</button></nav>
     <div class="layout" id="todo-module">
       <section class="panel editor" aria-labelledby="form-heading">
         <h2 id="form-heading">添加待办</h2><p class="muted">把要做的事，放在这里。</p>
@@ -39,11 +40,13 @@
       </section>
     </div>
     <section id="course-module" hidden aria-labelledby="course-heading">
-      <div class="list-header"><div><h2 id="course-heading">我的课程表</h2><p class="muted course-intro">按自己的时间，安排每一周。</p></div><button type="button" id="add-course" class="primary">＋ 添加课程</button></div>
-      <div class="panel course-toolbar"><div class="week-navigation"><button type="button" id="prev-week" aria-label="上一周">←</button><strong id="week-label" aria-live="polite"></strong><button type="button" id="next-week" aria-label="下一周">→</button><button type="button" id="this-week">本周</button></div><div class="semester-field"><label for="semester-start">第一周周一</label><input type="date" id="semester-start" aria-describedby="semester-help"></div><small id="semester-help">设置学期第一周的周一，单周 / 双周按此起算；未设置时展示所有课程。</small></div>
+      <div class="list-header"><div><h2 id="course-heading">课程</h2><p class="muted course-intro">按自己的时间，安排每一周。</p></div><button type="button" id="add-course" class="primary">＋ 添加课程</button></div>
+      <div class="tabs center-nav"><button type="button" id="course-tab-table" aria-pressed="true">课程表</button><button type="button" id="course-tab-all" aria-pressed="false">所有课程</button></div>
+      <div id="course-recent" class="panel center-recent"></div><div id="course-table-view"><div class="panel course-toolbar"><div class="week-navigation"><button type="button" id="prev-week" aria-label="上一周">←</button><strong id="week-label" aria-live="polite"></strong><button type="button" id="next-week" aria-label="下一周">→</button><button type="button" id="this-week">本周</button></div><div class="semester-field"><label for="semester-start">第一周周一</label><input type="date" id="semester-start" aria-describedby="semester-help"></div><small id="semester-help">设置学期第一周的周一，单周 / 双周按此起算；未设置时展示所有课程。</small></div>
       <p id="course-message" role="status" aria-live="polite"></p>
       <p id="course-summary" class="muted"></p>
-      <div id="week-grid" class="week-grid"></div>
+      <div id="week-grid" class="week-grid"></div></div>
+      <div id="course-all" class="center-grid" hidden></div><div id="course-detail" hidden></div><p id="center-message" role="status"></p>
     </section>
     <dialog id="course-dialog" aria-labelledby="course-form-heading">
       <form id="course-form">
@@ -52,6 +55,7 @@
         <div class="field-row"><div><label for="course-day">星期</label><select id="course-day" name="day"><option value="1">周一</option><option value="2">周二</option><option value="3">周三</option><option value="4">周四</option><option value="5">周五</option><option value="6">周六</option><option value="7">周日</option></select></div><div><label for="course-repeat">重复方式</label><select id="course-repeat" name="repeat"><option value="every">每周</option><option value="odd">单周</option><option value="even">双周</option></select></div></div>
         <div class="field-row"><div><label for="course-start">开始时间 <span class="required">*</span></label><input id="course-start" name="start" type="time" required></div><div><label for="course-end">结束时间 <span class="required">*</span></label><input id="course-end" name="end" type="time" required></div></div>
         <label for="course-location">地点</label><input id="course-location" name="location" maxlength="160" placeholder="例如：理教 203">
+        <label for="course-teacher">教师</label><input id="course-teacher" name="teacher" maxlength="120"><label for="course-description">课程简介</label><textarea id="course-description" name="description" maxlength="3000" rows="3"></textarea>
         <label for="course-notes">备注</label><textarea id="course-notes" name="notes" rows="3" maxlength="1000" placeholder="教材、老师或其他提醒"></textarea>
         <p id="course-form-message" role="alert"></p>
         <div class="form-actions"><button type="submit" class="primary">保存课程</button><button type="button" id="cancel-course">取消</button></div>
@@ -79,6 +83,7 @@
       <label for="food-notes">备注（可选）</label><textarea id="food-notes" name="notes" rows="3" maxlength="1000"></textarea>
       <p id="food-form-message" role="alert"></p><div class="form-actions"><button type="submit" class="primary">保存记录</button><button id="cancel-food" type="button">取消</button></div>
     </form></dialog>
+    <dialog id="center-dialog" aria-labelledby="center-form-heading"><form id="center-form"><h2 id="center-form-heading"></h2><div id="center-fields"></div><p id="center-form-error" role="alert"></p><div class="form-actions"><button type="submit" class="primary">保存</button><button type="button" id="center-cancel">取消</button></div></form></dialog>
     <footer>日序 · 数据保存在当前浏览器中</footer>
   </main>
 </body>
