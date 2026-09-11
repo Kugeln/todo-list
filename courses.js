@@ -119,4 +119,8 @@
   } catch { notify("无法读取学期设置，暂时展示所有课程。"); }
   center = typeof createCourseCenter === "function" ? createCourseCenter({ getCourses: () => courses, edit: openEditor }) : null;
   renderCourses();
+  if (typeof createCourseImport === "function") createCourseImport({
+    getCourses: () => courses,
+    save: next => { if (!save(next)) return false; renderCourses(); return true; }
+  });
 })();

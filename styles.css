@@ -160,3 +160,21 @@ textarea:focus-visible { outline:3px solid #c98291; outline-offset:2px; }
 .course-card { cursor:pointer; }
 .course-card:focus-visible { outline:3px solid #c98291; }
 @media(max-width:640px) { .center-grid,.center-detail-grid { grid-template-columns:minmax(0,1fr); } .center-section,.center-recent { padding:16px; } }
+
+.import-dialog { width:850px; max-width:calc(100% - 24px); max-height:calc(100dvh - 24px); overflow:auto; border:1px solid var(--line); border-radius:16px; padding:24px; }
+.import-dialog::backdrop { background:#27171d66; }
+.import-dialog > * { margin-bottom:16px; }
+.import-dialog input,.import-dialog select,.import-dialog textarea { max-width:100%; min-width:0; width:100%; }
+.import-dialog .actions { display:flex; flex-wrap:wrap; gap:10px; }
+.import-dialog .actions select { width:auto; }
+.import-preview { display:block; max-width:100%; max-height:300px; object-fit:contain; margin:auto; }
+.import-preview[hidden] { display:none; }
+.import-candidate { padding:18px; margin:12px 0; }
+.import-fields { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+.import-fields label { display:flex; flex-direction:column; gap:6px; min-width:0; }
+.import-selection { display:flex; align-items:center; gap:10px; }
+.import-selection input { width:22px; height:22px; }
+.import-message { color:var(--red); overflow-wrap:anywhere; }
+.import-dialog summary { cursor:pointer; padding:12px 0; }
+#course-module > .list-header { flex-wrap:wrap; gap:12px; }
+@media(max-width:640px) { .import-dialog { padding:16px; } .import-fields { grid-template-columns:minmax(0,1fr); } .import-dialog button { min-height:44px; } }

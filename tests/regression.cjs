@@ -23,6 +23,7 @@ let fail = false;
 function boot() {
   const nodes = {};
   const get = selector => nodes[selector] ||= new Element();
+  get('#add-course').parentElement = new Element();
   function makeForm(id, defaults) {
     const form = get(id);
     form.elements = Object.fromEntries(Object.keys(defaults).map(key => [key, new Element()]));
@@ -35,8 +36,8 @@ function boot() {
   get('#center-form').elements = {};
   get('#center-form').reset = () => {};
   get('#center-fields').append = (...items) => { for (const item of items) { get('#center-fields').children.push(item); if(item.id) nodes['#'+item.id]=item; if(item.name) get('#center-form').elements[item.name]=item; } };
-  const context = vm.createContext({ URL, document: { querySelector: get, createElement: () => new Element() }, Option: function(text, value) { this.textContent = text; this.value = value; }, FormData: function(form) { this.get = key => form.elements[key].disabled ? null : form.elements[key].value; }, crypto: require('node:crypto').webcrypto, structuredClone, confirm: () => true, console, localStorage: { getItem: key => storage.get(key) ?? null, setItem: (key, value) => { if (fail) throw Error('storage blocked'); storage.set(key, value); } } });
-  for (const file of ['app.js', 'course-center.js', 'courses.js', 'food.js']) vm.runInContext(fs.readFileSync(path.join(root, file), 'utf8'), context);
+  const context = vm.createContext({ URL, document: { body: new Element(), querySelector: get, createElement: () => new Element() }, Option: function(text, value) { this.textContent = text; this.value = value; }, FormData: function(form) { this.get = key => form.elements[key].disabled ? null : form.elements[key].value; }, crypto: require('node:crypto').webcrypto, structuredClone, confirm: () => true, console, localStorage: { getItem: key => storage.get(key) ?? null, setItem: (key, value) => { if (fail) throw Error('storage blocked'); storage.set(key, value); } } });
+  for (const file of ['app.js', 'course-center.js', 'course-import.js', 'courses.js', 'food.js']) vm.runInContext(fs.readFileSync(path.join(root, file), 'utf8'), context);
   const run = code => vm.runInContext(code, context);
   const submit = (target, values) => { for (const [key, value] of Object.entries(values)) target.elements[key].value = value; if (target === form) run('syncRepeatFields()'); target.handlers.submit({ preventDefault() {} }); };
   const click = selector => get(selector).handlers.click();
