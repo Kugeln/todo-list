@@ -56,4 +56,3 @@ const path=require('node:path');
  assert.deepEqual(errors,[]);console.log('PASS: real browser import validation, mapping, edits, manual CRUD, course detail integration, reload, desktop/390/320 layout, real Chinese OCR, no page errors.');
  await browser.close();
 })().catch(e=>{console.error(e);process.exit(1);});
-

@@ -145,4 +145,3 @@ function createCourseImport(api) {
   dialog.append(heading,intro,upload,preview,actions,progress,message,rawDetails,mapDetails,el('h3','','识别结果预览'),list,button('手动新增候选课程',()=>{candidates.push({name:'',day:0,start:'',end:'',periods:'',location:'',teacher:'',repeat:'every',notes:'',selected:true});render();}),commit);
   document.body.append(dialog);render();
 }
-
